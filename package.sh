@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for GOOS in darwin linux windows; do
+for GOOS in darwin linux ; do
     for GOARCH in 386 amd64 arm; do
         if [[ $GOARCH == "arm" && $GOOS != "linux" ]]; then
           continue;
