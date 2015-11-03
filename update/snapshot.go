@@ -1,10 +1,6 @@
 package update
 
-import (
-	"fmt"
-
-	"github.com/spf13/cobra"
-)
+import "github.com/spf13/cobra"
 
 var cmdUpdateSnapshot = &cobra.Command{
 	Use:     "snapshot",
@@ -12,6 +8,6 @@ var cmdUpdateSnapshot = &cobra.Command{
 	Long:    `tatcli update snapshot`,
 	Aliases: []string{"snap"},
 	Run: func(cmd *cobra.Command, args []string) {
-		doUpdate(fmt.Sprintf("%s%s"+"/tatcli", urlUpdateSnapshot, architecture))
+		doUpdate(urlUpdateSnapshot, architecture)
 	},
 }

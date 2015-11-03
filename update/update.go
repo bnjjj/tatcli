@@ -16,12 +16,14 @@ var architecture string
 // used by CI to inject url for downloading with tatcli update.
 // value of urlUpdate injected at build time
 // full URL update is constructed with architecture var :
-// urlUpdate + architecture + "/tatcli", tatcli is the binary
+// urlUpdate + "tatcli-" + architecture, tatcli is the binary
 var urlUpdateRelease string
 var urlUpdateSnapshot string
 
 func init() {
-	Cmd.AddCommand(cmdUpdateSnapshot)
+	if urlUpdateSnapshot != "" {
+		Cmd.AddCommand(cmdUpdateSnapshot)
+	}
 }
 
 // Cmd update
@@ -31,11 +33,12 @@ var Cmd = &cobra.Command{
 	Long:    `tatcli update`,
 	Aliases: []string{"up"},
 	Run: func(cmd *cobra.Command, args []string) {
-		doUpdate(fmt.Sprintf("%s%s"+"/tatcli", urlUpdateRelease, architecture))
+		doUpdate(urlUpdateRelease, architecture)
 	},
 }
 
-func doUpdate(url string) {
+func doUpdate(baseurl, architecture string) {
+	url := fmt.Sprintf("%s/tatcli-%s", baseurl, architecture)
 	if internal.Verbose {
 		fmt.Printf("Url to update tatcli: %s\n", url)
 	}
