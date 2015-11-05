@@ -19,7 +19,7 @@ var cmdTopicParameter = &cobra.Command{
 	Short:   "Update param on one topic: tatcli topic param [--recursive] <topic> <maxLength> <canForceDate> <canUpdateMsg> <canDeleteMsg> <canUpdateAllMsg> <canDeleteAllMsg> <isROPublic>",
 	Aliases: []string{"param"},
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) != 6 {
+		if len(args) != 8 {
 			fmt.Println("Invalid parameter to tatcli topic param. See tatcli topic param --help")
 			cmd.Help()
 			os.Exit(1)
