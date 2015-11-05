@@ -344,6 +344,7 @@ Available Commands:
   update                    Update Fullname and Email of a user (admin only): tatcli user update <username> <newEmail> <newFullname>
   setAdmin                  Grant user to Tat admin (admin only): tatcli user setAdmin <username>
   verify                    Verify account: tatcli user verify [--save] <username> <tokenVerify>
+  check                     Check Private Topics and Default Group on one user (admin only): tatcli user check <username> <fixPrivateTopics> <fixDefaultGroup>
 
 Flags:
   -h, --help=false: help for user
@@ -576,6 +577,20 @@ tatcli user rename oldUsername newUsername
 #### Update fullname and email (Admin only)
 ```
 tatcli user update username newEmail newFirstname newLastname
+```
+
+#### Check a user (Admin only)
+
+Check Private Topics and Default Group on one user:
+
+```
+tatcli user check <username> <fixPrivateTopics> <fixDefaultGroup>
+```
+
+Example :
+
+```
+tatcli check username true true
 ```
 
 ### Group

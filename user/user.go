@@ -28,6 +28,7 @@ func init() {
 	Cmd.AddCommand(cmdUserUpdate)
 	Cmd.AddCommand(cmdUserSetAdmin)
 	Cmd.AddCommand(cmdUserVerify)
+	Cmd.AddCommand(cmdUserCheck)
 }
 
 // Cmd user
