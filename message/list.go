@@ -49,8 +49,6 @@ func init() {
 	cmdMessageList.Flags().StringVarP(&criteriaDateMinUpdate, "dateMinUpdate", "", "", "Search by dateMinUpdate (timestamp)")
 	cmdMessageList.Flags().StringVarP(&criteriaDateMaxUpdate, "dateMaxUpdate", "", "", "Search by dateMaxUpdate (timestamp)")
 	cmdMessageList.Flags().StringVarP(&criteriaUsername, "username", "", "", "Search by username : could be usernameA,usernameB")
-
-	Cmd.AddCommand(cmdMessageList)
 }
 
 var cmdMessageList = &cobra.Command{
