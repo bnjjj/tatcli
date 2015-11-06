@@ -124,7 +124,6 @@ Available Commands:
   unlabel     Remove a label from a message: tatcli message unlabel <idMessage> <my Label>
   tag         Add a tag to a message (user system with rights only): tatcli message tag <idMessage> <my Tag>
   untag       Remove a tag from a message (user system with rights only): tatcli message untag <idMessage> <myTag>
-  list        List all messages on one topic: tatcli msg list <Topic> <skip> <limit>
   read        List all messages on one public topic (read only): tatcli msg read <Topic> <skip> <limit>
 
 Flags:
