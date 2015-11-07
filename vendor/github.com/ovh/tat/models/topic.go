@@ -14,21 +14,32 @@ import (
 
 // Topic struct
 type Topic struct {
-	ID               string   `bson:"_id"          json:"_id,omitempty"`
-	Topic            string   `bson:"topic"        json:"topic"`
-	Description      string   `bson:"description"  json:"description"`
-	ROGroups         []string `bson:"roGroups"     json:"roGroups,omitempty"`
-	RWGroups         []string `bson:"rwGroups"     json:"rwGroups,omitempty"`
-	ROUsers          []string `bson:"roUsers"      json:"roUsers,omitempty"`
-	RWUsers          []string `bson:"rwUsers"      json:"rwUsers,omitempty"`
-	AdminUsers       []string `bson:"adminUsers"   json:"adminUsers,omitempty"`
-	AdminGroups      []string `bson:"adminGroups"  json:"adminGroups,omitempty"`
-	History          []string `bson:"history"      json:"history"`
-	MaxLength        int      `bson:"maxlength"    json:"maxlength"`
-	CanForceDate     bool     `bson:"canForceDate" json:"canForceDate"`
-	IsROPublic       bool     `bson:"isROPublic"   json:"isROPublic"`
-	DateModification int64    `bson:"dateModification" json:"dateModificationn,omitempty"`
-	DateCreation     int64    `bson:"dateCreation" json:"dateCreation,omitempty"`
+	ID               string           `bson:"_id"          json:"_id,omitempty"`
+	Topic            string           `bson:"topic"        json:"topic"`
+	Description      string           `bson:"description"  json:"description"`
+	ROGroups         []string         `bson:"roGroups"     json:"roGroups,omitempty"`
+	RWGroups         []string         `bson:"rwGroups"     json:"rwGroups,omitempty"`
+	ROUsers          []string         `bson:"roUsers"      json:"roUsers,omitempty"`
+	RWUsers          []string         `bson:"rwUsers"      json:"rwUsers,omitempty"`
+	AdminUsers       []string         `bson:"adminUsers"   json:"adminUsers,omitempty"`
+	AdminGroups      []string         `bson:"adminGroups"  json:"adminGroups,omitempty"`
+	History          []string         `bson:"history"      json:"history"`
+	MaxLength        int              `bson:"maxlength"    json:"maxlength"`
+	CanForceDate     bool             `bson:"canForceDate" json:"canForceDate"`
+	CanUpdateMsg     bool             `bson:"canUpdateMsg" json:"canUpdateMsg"`
+	CanDeleteMsg     bool             `bson:"canDeleteMsg" json:"canDeleteMsg"`
+	CanUpdateAllMsg  bool             `bson:"canUpdateAllMsg" json:"canUpdateAllMsg"`
+	CanDeleteAllMsg  bool             `bson:"canDeleteAllMsg" json:"canDeleteAllMsg"`
+	IsROPublic       bool             `bson:"isROPublic"   json:"isROPublic"`
+	DateModification int64            `bson:"dateModification" json:"dateModificationn,omitempty"`
+	DateCreation     int64            `bson:"dateCreation" json:"dateCreation,omitempty"`
+	Parameters       []TopicParameter `bson:"parameters" json:"parameters,omitempty"`
+}
+
+// TopicParameter struct, parameter on topics
+type TopicParameter struct {
+	Key   string `bson:"key"   json:"key"`
+	Value string `bson:"value" json:"value"`
 }
 
 // TopicCriteria struct, used by List Topic
@@ -128,7 +139,17 @@ func buildTopicCriteria(criteria *TopicCriteria, user *User) bson.M {
 
 func getTopicSelectedFields(isAdmin bool) bson.M {
 	if !isAdmin {
-		return bson.M{"topic": 1, "description": 1, "isROPublic": 1}
+		return bson.M{
+			"topic":           1,
+			"description":     1,
+			"isROPublic":      1,
+			"canUpdateMsg":    1,
+			"canDeleteMsg":    1,
+			"canUpdateAllMsg": 1,
+			"canDeleteAllMsg": 1,
+			"maxlength":       1,
+			"parameters":      1,
+		}
 	}
 	return bson.M{}
 }
@@ -167,13 +188,17 @@ func listTopicsCursor(criteria *TopicCriteria, user *User) *mgo.Query {
 // InitPrivateTopic insert topic "/Private"
 func InitPrivateTopic() {
 	topic := &Topic{
-		ID:           bson.NewObjectId().Hex(),
-		Topic:        "/Private",
-		Description:  "Private Topics",
-		DateCreation: time.Now().Unix(),
-		MaxLength:    DefaultMessageMaxSize,
-		CanForceDate: false,
-		IsROPublic:   false,
+		ID:              bson.NewObjectId().Hex(),
+		Topic:           "/Private",
+		Description:     "Private Topics",
+		DateCreation:    time.Now().Unix(),
+		MaxLength:       DefaultMessageMaxSize,
+		CanForceDate:    false,
+		CanUpdateMsg:    false,
+		CanDeleteMsg:    false,
+		CanUpdateAllMsg: false,
+		CanDeleteAllMsg: false,
+		IsROPublic:      false,
 	}
 	err := Store().clTopics.Insert(topic)
 	log.Infof("Initialize /Private Topic")
@@ -195,10 +220,10 @@ func (topic *Topic) Insert(user *User) error {
 			return fmt.Errorf("Parent Topic not found %s", topic.Topic)
 		}
 
-		// If user create a Topic in /Private, no check or RW to create
+		// If user create a Topic in /Private/username, no check or RW to create
 		if !strings.HasPrefix(topic.Topic, "/Private/"+user.Username) {
 			// check if user can create topic in /topic
-			hasRW := parentTopic.IsUserRW(user)
+			hasRW := parentTopic.IsUserAdmin(user)
 			if !hasRW {
 				return fmt.Errorf("No RW access to parent topic %s", parentTopic.Topic)
 			}
@@ -219,6 +244,31 @@ func (topic *Topic) Insert(user *User) error {
 	topic.CanForceDate = false
 	topic.IsROPublic = false
 
+	if !isParentRootTopic {
+		topic.ROGroups = parentTopic.ROGroups
+		topic.RWGroups = parentTopic.RWGroups
+		topic.ROUsers = parentTopic.ROUsers
+		topic.RWUsers = parentTopic.RWUsers
+		topic.AdminUsers = parentTopic.AdminUsers
+		topic.AdminGroups = parentTopic.AdminGroups
+		topic.MaxLength = parentTopic.MaxLength
+		topic.CanForceDate = parentTopic.CanForceDate
+		// topic.CanUpdateMsg can be set by user.createTopics for new users
+		// with CanUpdateMsg=true
+		if !topic.CanUpdateMsg {
+			topic.CanUpdateMsg = parentTopic.CanUpdateMsg
+		}
+		// topic.CanDeleteMsg can be set by user.createTopics for new users
+		// with CanDeleteMsg=true
+		if !topic.CanDeleteMsg {
+			topic.CanDeleteMsg = parentTopic.CanDeleteMsg
+		}
+		topic.CanUpdateAllMsg = parentTopic.CanUpdateAllMsg
+		topic.CanDeleteAllMsg = parentTopic.CanDeleteAllMsg
+		topic.IsROPublic = parentTopic.IsROPublic
+		topic.Parameters = parentTopic.Parameters
+	}
+
 	err = Store().clTopics.Insert(topic)
 	if err != nil {
 		log.Errorf("Error while inserting new topic %s", err)
@@ -230,7 +280,33 @@ func (topic *Topic) Insert(user *User) error {
 		log.Errorf("Error while inserting history for new topic %s", err)
 	}
 	err = topic.AddRwUser(user.Username, user.Username, false)
+
 	return err
+}
+
+// Delete deletes a topic from database
+func (topic *Topic) Delete(user *User) error {
+
+	// If user delete a Topic under /Private/username, no check or RW to delete
+	if !strings.HasPrefix(topic.Topic, "/Private/"+user.Username) {
+		// check if user is Tat admin or admin on this topic
+		hasRW := topic.IsUserAdmin(user)
+		if !hasRW {
+			return fmt.Errorf("No RW access to topic %s (to delete it)", topic.Topic)
+		}
+	}
+
+	c := &MessageCriteria{Topic: topic.Topic}
+	msgs, err := ListMessages(c)
+	if err != nil {
+		return fmt.Errorf("Error while list Messages in Delete %s", err)
+	}
+
+	if len(msgs) > 0 {
+		return fmt.Errorf("Could not delete this topic, this topic have messages")
+	}
+
+	return Store().clTopics.Remove(bson.M{"_id": topic.ID})
 }
 
 // Get parent topic
@@ -286,8 +362,8 @@ func (topic *Topic) FindByID(id string, isAdmin bool) error {
 	return err
 }
 
-// SetParam update param maxLength, canForceDate, isROPublic on topic
-func (topic *Topic) SetParam(username string, recursive bool, maxLength int, canForceDate, isROPublic bool) error {
+// SetParam update param maxLength, canForceDate, canUpdateMsg, canDeleteMsg, canUpdateAllMsg, canDeleteAllMsg, isROPublic on topic
+func (topic *Topic) SetParam(username string, recursive bool, maxLength int, canForceDate, canUpdateMsg, canDeleteMsg, canUpdateAllMsg, canDeleteAllMsg, isROPublic bool) error {
 
 	var selector bson.M
 
@@ -305,9 +381,13 @@ func (topic *Topic) SetParam(username string, recursive bool, maxLength int, can
 		selector,
 		bson.M{
 			"$set": bson.M{
-				"maxlength":    maxLength,
-				"canForceDate": canForceDate,
-				"isROPublic":   isROPublic,
+				"maxlength":       maxLength,
+				"canForceDate":    canForceDate,
+				"canUpdateMsg":    canUpdateMsg,
+				"canDeleteMsg":    canDeleteMsg,
+				"canUpdateAllMsg": canUpdateAllMsg,
+				"canDeleteAllMsg": canDeleteAllMsg,
+				"isROPublic":      isROPublic,
 			},
 		},
 	)
@@ -315,8 +395,37 @@ func (topic *Topic) SetParam(username string, recursive bool, maxLength int, can
 	if err != nil {
 		return err
 	}
-	h := fmt.Sprintf("update param to maxlength:%d, canForceDate:%t, isROPublic:%t", maxLength, canForceDate, isROPublic)
+	h := fmt.Sprintf("update param to maxlength:%d, canForceDate:%t, canUpdateMsg:%t, canDeleteMsg:%t, canUpdateAllMsg:%t, canDeleteAllMsg:%t, isROPublic:%t", maxLength, canForceDate, canUpdateMsg, canDeleteMsg, canUpdateAllMsg, canDeleteAllMsg, isROPublic)
 	return topic.addToHistory(selector, username, h)
+}
+
+func (topic *Topic) actionOnSetParameter(operand, set, admin string, newParam TopicParameter, recursive bool, history string) error {
+
+	var selector bson.M
+
+	if recursive {
+		selector = bson.M{"topic": bson.RegEx{Pattern: "^" + topic.Topic + ".*$"}}
+	} else {
+		selector = bson.M{"_id": topic.ID}
+	}
+
+	var err error
+	if operand == "$pull" {
+		_, err = Store().clTopics.UpdateAll(
+			selector,
+			bson.M{operand: bson.M{set: bson.M{"key": newParam.Key}}},
+		)
+	} else {
+		_, err = Store().clTopics.UpdateAll(
+			selector,
+			bson.M{operand: bson.M{set: bson.M{"key": newParam.Key, "value": newParam.Value}}},
+		)
+	}
+
+	if err != nil {
+		return err
+	}
+	return topic.addToHistory(selector, admin, history+" "+newParam.Key+":"+newParam.Value)
 }
 
 func (topic *Topic) actionOnSet(operand, set, username, admin string, recursive bool, history string) error {
@@ -400,6 +509,17 @@ func (topic *Topic) RemoveRwGroup(admin string, username string, recursive bool)
 	return topic.actionOnSet("$pull", "rwGroups", username, admin, recursive, "remove from rw")
 }
 
+// AddParameter add a parameter to the topic
+func (topic *Topic) AddParameter(admin string, parameterKey string, parameterValue string, recursive bool) error {
+
+	return topic.actionOnSetParameter("$addToSet", "parameters", admin, TopicParameter{Key: parameterKey, Value: parameterValue}, recursive, "add to parameter")
+}
+
+// RemoveParameter removes a read only user from topic
+func (topic *Topic) RemoveParameter(admin string, parameterKey string, parameterValue string, recursive bool) error {
+	return topic.actionOnSetParameter("$pull", "parameters", admin, TopicParameter{Key: parameterKey, Value: ""}, recursive, "remove from parameters")
+}
+
 func (topic *Topic) addToHistory(selector bson.M, user string, historyToAdd string) error {
 	toAdd := strconv.FormatInt(time.Now().Unix(), 10) + " " + user + " " + historyToAdd
 	_, err := Store().clTopics.UpdateAll(
@@ -476,9 +596,14 @@ func (topic *Topic) IsUserReadAccess(user User) bool {
 	return false
 }
 
-// IsUserAdmin return true if user is admin on this topic
+// IsUserAdmin return true if user is Tat admin or is admin on this topic
 // Check personal access to topic, and group access
 func (topic *Topic) IsUserAdmin(user *User) bool {
+
+	if user.IsAdmin {
+		return true
+	}
+
 	if utils.ArrayContains(topic.AdminUsers, user.Username) {
 		return true
 	}
@@ -495,6 +620,11 @@ func (topic *Topic) IsUserAdmin(user *User) bool {
 	}
 
 	if utils.ItemInBothArrays(topic.AdminGroups, groups) {
+		return true
+	}
+
+	// user is "Admin" on his /Private/usrname topics
+	if strings.HasPrefix(topic.Topic, "/Private/"+user.Username) {
 		return true
 	}
 

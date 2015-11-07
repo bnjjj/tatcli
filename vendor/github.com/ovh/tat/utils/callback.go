@@ -13,7 +13,8 @@ func getSigninCmd(username, tokenVerify, callback string) (string, string) {
 
 	textVerify := "To verify your email address, follow this link : "
 
-	if strings.HasPrefix(callback, "tatcli user") {
+	// tatcli  --url=.... user verify --save
+	if strings.HasPrefix(callback, "user verify --save") { // tatcli
 		textVerify = "To verify your email address, execute this command : "
 	}
 
@@ -25,7 +26,8 @@ func getResetCmd(username, tokenVerify, callback string) (string, string) {
 
 	textVerify := "To complete your password resetting, follow this link:"
 
-	if strings.HasPrefix(callback, "tatcli user") {
+	// tatcli  --url=.... user verify --save
+	if strings.HasPrefix(callback, "user verify --save") {
 		textVerify = "To complete your password resetting, execute this command : "
 	}
 

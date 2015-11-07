@@ -1,6 +1,8 @@
 package models
 
 import (
+	"os"
+	"strings"
 	"sync"
 
 	log "github.com/Sirupsen/logrus"
@@ -47,6 +49,7 @@ func NewStore() {
 	username := viper.GetString("db_user")
 	password := viper.GetString("db_password")
 	address := viper.GetString("db_addr")
+	replicaSetHostnamesTags := viper.GetString("db_rs_tags")
 
 	if username != "" && password != "" {
 		session, err = mgo.Dial("mongodb://" + username + ":" + password + "@" + address)
@@ -54,7 +57,31 @@ func NewStore() {
 		session, err = mgo.Dial("mongodb://" + address)
 	}
 
-	session.SetMode(mgo.Monotonic, true)
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Errorf("Error with getting hostname: %s", err.Error())
+	}
+
+	session.Refresh()
+	session.SetMode(mgo.SecondaryPreferred, true)
+
+	if replicaSetHostnamesTags != "" && hostname != "" {
+		log.Warnf("SelectServers try selectServer for %s with values %s", hostname, replicaSetHostnamesTags)
+		tuples := strings.Split(replicaSetHostnamesTags, ",")
+		for _, tuple := range tuples {
+			t := strings.Split(tuple, ":")
+			tupleHostname := t[0]
+			if tupleHostname == hostname {
+				tupleTagName := t[1]
+				tupleTagValue := t[2]
+				log.Warnf("SelectServers attach %s on replicaSet with tagName %s and value %s and %s", hostname, tupleTagName, tupleTagValue)
+				session.SelectServers(bson.D{{tupleTagName, tupleTagValue}})
+				break
+			}
+		}
+	} else {
+		log.Debugf("SelectServers No prefered server to select : %s", replicaSetHostnamesTags)
+	}
 
 	if err != nil {
 		log.Fatalf("Error with getting Mongodb.Instance on address %s : %s", address, err)
@@ -98,6 +125,7 @@ func ensureIndexes(store *MongoStore) {
 	listIndex(store.clPresences, false)
 
 	ensureIndex(store.clMessages, mgo.Index{Key: []string{"topics", "-dateUpdate", "-dateCreation"}})
+	ensureIndex(store.clMessages, mgo.Index{Key: []string{"topics", "-dateCreation"}})
 	ensureIndex(store.clMessages, mgo.Index{Key: []string{"tags"}})
 	ensureIndex(store.clMessages, mgo.Index{Key: []string{"labels.text"}})
 	ensureIndex(store.clMessages, mgo.Index{Key: []string{"inReplyOfID"}})
@@ -193,6 +221,13 @@ func DBStatsCollection(colName string) (bson.M, error) {
 func DBReplSetGetStatus() (bson.M, error) {
 	result := bson.M{}
 	err := _instance.session.Run(bson.D{{"replSetGetStatus", 1}}, &result)
+	return result, err
+}
+
+// DBReplSetGetConfig returns replSetGetConfig cmd
+func DBReplSetGetConfig() (bson.M, error) {
+	result := bson.M{}
+	err := _instance.session.Run(bson.D{{"replSetGetConfig", 1}}, &result)
 	return result, err
 }
 

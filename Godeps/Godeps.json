@@ -21,6 +21,14 @@
 			"Rev": "4cc2de6207f4128624cbdd16be30f64966c67c08"
 		},
 		{
+			"ImportPath": "github.com/google/go-github/github",
+			"Rev": "81d0490d8aa8400f6760a077f4a2039eb0296e86"
+		},
+		{
+			"ImportPath": "github.com/google/go-querystring/query",
+			"Rev": "547ef5ac979778feb2f760cdb5f4eae1a2207b86"
+		},
+		{
 			"ImportPath": "github.com/gorilla/websocket",
 			"Rev": "a3ec486e6a7a41858210b0fc5d7b5df593b3c4a3"
 		},
@@ -55,10 +63,6 @@
 			"Rev": "40e4aedc8fabf8c23e040057540867186712faa5"
 		},
 		{
-			"ImportPath": "github.com/mattn/go-isatty",
-			"Rev": "7fcbc72f853b92b5720db4a6b8482be612daef24"
-		},
-		{
 			"ImportPath": "github.com/mitchellh/mapstructure",
 			"Rev": "2caf8efc93669b6c43e0441cdc6aed17546c96f3"
 		},
@@ -69,11 +73,13 @@
 		},
 		{
 			"ImportPath": "github.com/ovh/tat/models",
-			"Rev": "b640ffdf170a5ee247505144ce8d2f21fc059db5"
+			"Comment": "v0.56.0-3-ge8ddf04",
+			"Rev": "e8ddf04240ed6e23deb0df172dd2547c4f13c6d4"
 		},
 		{
 			"ImportPath": "github.com/ovh/tat/utils",
-			"Rev": "b640ffdf170a5ee247505144ce8d2f21fc059db5"
+			"Comment": "v0.56.0-3-ge8ddf04",
+			"Rev": "e8ddf04240ed6e23deb0df172dd2547c4f13c6d4"
 		},
 		{
 			"ImportPath": "github.com/spf13/cast",
@@ -110,8 +116,8 @@
 		},
 		{
 			"ImportPath": "gopkg.in/mgo.v2",
-			"Comment": "r2015.06.03-3-g3569c88",
-			"Rev": "3569c88678d88179dcbd68d02ab081cbca3cd4d0"
+			"Comment": "r2015.10.05-1-g4d04138",
+			"Rev": "4d04138ffef2791c479c0c8bbffc30b34081b8d9"
 		},
 		{
 			"ImportPath": "gopkg.in/yaml.v2",

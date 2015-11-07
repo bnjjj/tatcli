@@ -66,6 +66,7 @@ type MessageCriteria struct {
 	Tag             string
 	NotTag          string
 	AndTag          string
+	Username        string
 	DateMinCreation string
 	DateMaxCreation string
 	DateMinUpdate   string
@@ -125,6 +126,12 @@ func buildMessageCriteria(criteria *MessageCriteria) bson.M {
 		queryTopics["$or"] = append(queryTopics["$or"].([]bson.M), bson.M{"topics": bson.M{"$in": strings.Split(criteria.Topic, ",")}})
 		query = append(query, queryTopics)
 	}
+	if criteria.Username != "" {
+		queryUsernames := bson.M{}
+		queryUsernames["$or"] = []bson.M{}
+		queryUsernames["$or"] = append(queryUsernames["$or"].([]bson.M), bson.M{"author.username": bson.M{"$in": strings.Split(criteria.Username, ",")}})
+		query = append(query, queryUsernames)
+	}
 	if criteria.Label != "" {
 		queryLabels := bson.M{"labels": bson.M{"$elemMatch": bson.M{"text": bson.M{"$in": strings.Split(criteria.Label, ",")}}}}
 		query = append(query, queryLabels)
@@ -134,12 +141,10 @@ func buildMessageCriteria(criteria *MessageCriteria) bson.M {
 		query = append(query, queryLabels)
 	}
 	if criteria.NotLabel != "" {
-		queryLabels := bson.M{}
-		queryLabels["$or"] = []bson.M{}
 		for _, val := range strings.Split(criteria.NotLabel, ",") {
-			queryLabels["$or"] = append(queryLabels["$or"].([]bson.M), bson.M{"labels.text": bson.M{"$ne": val}})
+			queryLabels := bson.M{"labels.text": bson.M{"$ne": val}}
+			query = append(query, queryLabels)
 		}
-		query = append(query, queryLabels)
 	}
 	if criteria.Tag != "" {
 		queryTags := bson.M{"tags": bson.M{"$in": strings.Split(criteria.Tag, ",")}}
@@ -246,16 +251,56 @@ func ListMessages(criteria *MessageCriteria) ([]Message, error) {
 	if err != nil {
 		log.Errorf("Error while Find All Messages %s", err)
 	}
+
+	if len(messages) == 0 {
+		return messages, nil
+	}
+
+	if criteria.TreeView == "onetree" || criteria.TreeView == "fulltree" {
+		messages, err = initTree(messages, criteria)
+		if err != nil {
+			log.Errorf("Error while Find All Messages (getTree) %s", err)
+		}
+	}
 	if criteria.TreeView == "onetree" {
-		return oneTreeMessages(messages, 1)
+		return oneTreeMessages(messages, 1, criteria)
 	} else if criteria.TreeView == "fulltree" {
-		return fullTreeMessages(messages, 1)
+		return fullTreeMessages(messages, 1, criteria)
 	}
 
 	return messages, err
 }
 
-func oneTreeMessages(messages []Message, nloop int) ([]Message, error) {
+func initTree(messages []Message, criteria *MessageCriteria) ([]Message, error) {
+	var ids []string
+	idMessages := ""
+	for i := 0; i <= len(messages)-1; i++ {
+		if utils.ArrayContains(ids, messages[i].ID) {
+			continue
+		}
+		ids = append(ids, messages[i].ID)
+		idMessages += messages[i].ID + ","
+	}
+
+	if idMessages == "" {
+		return messages, nil
+	}
+
+	c := &MessageCriteria{
+		AllIDMessage: idMessages[:len(idMessages)-1],
+		NotLabel:     criteria.NotLabel,
+		NotTag:       criteria.NotTag,
+	}
+	var msgs []Message
+	err := Store().clMessages.Find(buildMessageCriteria(c)).Sort("-dateCreation").All(&msgs)
+	if err != nil {
+		log.Errorf("Error while Find Messages in getTree %s", err)
+		return messages, err
+	}
+	return msgs, nil
+}
+
+func oneTreeMessages(messages []Message, nloop int, criteria *MessageCriteria) ([]Message, error) {
 	var tree []Message
 	if nloop > 25 {
 		e := "Infinite loop detected in oneTreeMessages"
@@ -285,16 +330,16 @@ func oneTreeMessages(messages []Message, nloop int) ([]Message, error) {
 	if len(replies) == 0 {
 		return tree, nil
 	}
-	t, err := getTree(replies)
+	t, err := getTree(replies, criteria)
 	if err != nil {
 		return tree, err
 	}
 
-	ft, err := oneTreeMessages(t, nloop+1)
+	ft, err := oneTreeMessages(t, nloop+1, criteria)
 	return append(ft, tree...), err
 }
 
-func fullTreeMessages(messages []Message, nloop int) ([]Message, error) {
+func fullTreeMessages(messages []Message, nloop int, criteria *MessageCriteria) ([]Message, error) {
 	var tree []Message
 	if nloop > 10 {
 		e := "Infinite loop detected in fullTreeMessages"
@@ -331,20 +376,24 @@ func fullTreeMessages(messages []Message, nloop int) ([]Message, error) {
 	if len(replies) == 0 {
 		return tree, nil
 	}
-	t, err := getTree(replies)
+	t, err := getTree(replies, criteria)
 	if err != nil {
 		return tree, err
 	}
-	ft, err := fullTreeMessages(t, nloop+1)
+	ft, err := fullTreeMessages(t, nloop+1, criteria)
 	return append(ft, tree...), err
 }
 
-func getTree(messagesIn map[string][]Message) ([]Message, error) {
+func getTree(messagesIn map[string][]Message, criteria *MessageCriteria) ([]Message, error) {
 	var messages []Message
 
+	toDelete := false
 	for idMessage := range messagesIn {
+		toDelete = false
 		c := &MessageCriteria{
 			AllIDMessage: idMessage,
+			NotLabel:     criteria.NotLabel,
+			NotTag:       criteria.NotTag,
 		}
 		var msgs []Message
 		err := Store().clMessages.Find(buildMessageCriteria(c)).Sort("-dateCreation").All(&msgs)
@@ -352,7 +401,22 @@ func getTree(messagesIn map[string][]Message) ([]Message, error) {
 			log.Errorf("Error while Find Messages in getTree %s", err)
 			return messages, err
 		}
-		messages = append(messages, msgs...)
+
+		if criteria.NotLabel != "" || criteria.NotTag != "" {
+			toDelete = true
+		}
+		for _, m := range msgs {
+			if m.ID == idMessage && m.InReplyOfIDRoot == "" && toDelete {
+				toDelete = false
+				break
+			}
+		}
+
+		if toDelete {
+			delete(messagesIn, idMessage)
+		} else {
+			messages = append(messages, msgs...)
+		}
 	}
 
 	return messages, nil
@@ -455,14 +519,48 @@ func (message *Message) CheckAndFixText(topic Topic) error {
 	return nil
 }
 
-// Delete deletes a message from database
-func (message *Message) Delete() error {
-	err := Store().clMessages.Remove(bson.M{"_id": message.ID})
+// Update updates a message from database
+func (message *Message) Update(user User, topic Topic) error {
 
+	err := message.CheckAndFixText(topic)
 	if err != nil {
 		return err
 	}
+
+	err = Store().clMessages.Update(
+		bson.M{"_id": message.ID},
+		bson.M{"$set": bson.M{
+			"text":         message.Text,
+			"dateUpdate":   time.Now().Unix(),
+			"tags":         hashtag.ExtractHashtags(message.Text),
+			"userMentions": hashtag.ExtractMentions(message.Text),
+			"urls":         xurls.Strict.FindAllString(message.Text, -1),
+		}})
+	if err != nil {
+		log.Errorf("Error while update a message %s", err)
+	}
+
 	return nil
+}
+
+// Delete deletes a message from database
+func (message *Message) Delete() error {
+
+	c := &MessageCriteria{
+		InReplyOfID: message.ID,
+		TreeView:    "onetree",
+	}
+
+	msgs, err := ListMessages(c)
+	if err != nil {
+		return fmt.Errorf("Error while list Messages in Delete %s", err)
+	}
+
+	if len(msgs) > 0 {
+		return fmt.Errorf("Could not delete this message, this message have replies")
+	}
+
+	return Store().clMessages.Remove(bson.M{"_id": message.ID})
 }
 
 func (message *Message) getLabel(label string) (int, Label, error) {
@@ -501,10 +599,10 @@ func (message *Message) containsTag(tag string) bool {
 }
 
 //AddLabel add a label to a message
-//truncated to 20 char in text label
+//truncated to 100 char in text label
 func (message *Message) AddLabel(label string, color string) (Label, error) {
-	if len(label) > 20 {
-		label = label[0:20]
+	if len(label) > 100 {
+		label = label[0:100]
 	}
 
 	if message.containsLabel(label) {

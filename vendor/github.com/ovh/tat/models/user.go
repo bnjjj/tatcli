@@ -8,6 +8,7 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 	"github.com/ovh/tat/utils"
+	"github.com/spf13/viper"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -30,20 +31,21 @@ type Auth struct {
 
 // User struct
 type User struct {
-	ID                    string    `bson:"_id"               json:"_id"`
-	Username              string    `bson:"username"          json:"username"`
-	Fullname              string    `bson:"fullname"          json:"fullname"`
-	Email                 string    `bson:"email"             json:"email,omitempty"`
-	Groups                []string  `bson:"-"                 json:"groups,omitempty"`
-	IsAdmin               bool      `bson:"isAdmin"           json:"isAdmin,omitempty"`
-	IsSystem              bool      `bson:"isSystem"          json:"isSystem,omitempty"`
-	IsArchived            bool      `bson:"isArchived"        json:"isArchived,omitempty"`
-	CanWriteNotifications bool      `bson:"canWriteNotifications" json:"canWriteNotifications,omitempty"`
-	FavoritesTopics       []string  `bson:"favoritesTopics"   json:"favoritesTopics,omitempty"`
-	FavoritesTags         []string  `bson:"favoritesTags"     json:"favoritesTags,omitempty"`
-	DateCreation          int64     `bson:"dateCreation"      json:"dateCreation,omitempty"`
-	Contacts              []Contact `bson:"contacts"          json:"contacts,omitempty"`
-	Auth                  Auth      `bson:"auth" json:"-"`
+	ID                     string    `bson:"_id"               json:"_id"`
+	Username               string    `bson:"username"          json:"username"`
+	Fullname               string    `bson:"fullname"          json:"fullname"`
+	Email                  string    `bson:"email"             json:"email,omitempty"`
+	Groups                 []string  `bson:"-"                 json:"groups,omitempty"`
+	IsAdmin                bool      `bson:"isAdmin"           json:"isAdmin,omitempty"`
+	IsSystem               bool      `bson:"isSystem"          json:"isSystem,omitempty"`
+	IsArchived             bool      `bson:"isArchived"        json:"isArchived,omitempty"`
+	CanWriteNotifications  bool      `bson:"canWriteNotifications" json:"canWriteNotifications,omitempty"`
+	FavoritesTopics        []string  `bson:"favoritesTopics"   json:"favoritesTopics,omitempty"`
+	OffNotificationsTopics []string  `bson:"offNotificationsTopics"   json:"offNotificationsTopics,omitempty"`
+	FavoritesTags          []string  `bson:"favoritesTags"     json:"favoritesTags,omitempty"`
+	DateCreation           int64     `bson:"dateCreation"      json:"dateCreation,omitempty"`
+	Contacts               []Contact `bson:"contacts"          json:"contacts,omitempty"`
+	Auth                   Auth      `bson:"auth" json:"-"`
 }
 
 // UserCriteria is used to list users with criterias
@@ -257,8 +259,13 @@ func (user *User) Verify(username, tokenVerify string) (bool, string, error) {
 
 	password, err := user.regenerateAndStoreAuth()
 
-	return !emailVerified, password, err
+	if !emailVerified {
+		log.Debugf("%s is a new user, ask to create his topics", username)
+		user.createTopics()
+		user.AddDefaultGroup()
+	}
 
+	return !emailVerified, password, err
 }
 
 func (user *User) regenerateAndStoreAuth() (string, error) {
@@ -286,16 +293,17 @@ func (user *User) regenerateAndStoreAuth() (string, error) {
 
 func (user *User) getFieldsExceptAuth() bson.M {
 	return bson.M{"username": 1,
-		"fullname":              1,
-		"email":                 1,
-		"isAdmin":               1,
-		"isSystem":              1,
-		"isArchived":            1,
-		"canWriteNotifications": 1,
-		"dateCreation":          1,
-		"favoritesTopics":       1,
-		"favoritesTags":         1,
-		"contacts":              1,
+		"fullname":               1,
+		"email":                  1,
+		"isAdmin":                1,
+		"isSystem":               1,
+		"isArchived":             1,
+		"canWriteNotifications":  1,
+		"dateCreation":           1,
+		"favoritesTopics":        1,
+		"offNotificationsTopics": 1,
+		"favoritesTags":          1,
+		"contacts":               1,
 	}
 }
 
@@ -317,6 +325,65 @@ func (user *User) FindByUsernameAndPassword(username, password string) error {
 
 	// ok, user is checked, get all fields now
 	return user.FindByUsername(username)
+}
+
+// TrustUsername create user is not already registered
+func (user *User) TrustUsername(username string) error {
+
+	if !IsUsernameExists(username) {
+
+		user.Username = username
+		user.setEmailAndFullnameFromTrustedUsername()
+
+		tokenVerify, err := user.Insert()
+		if err != nil {
+			return fmt.Errorf("TrustUsername, Error while Insert user %s : %s", username, err.Error())
+		}
+
+		_, _, err = user.Verify(username, tokenVerify)
+		if err != nil {
+			return fmt.Errorf("TrustUsername, Error while verify : %s", err.Error())
+		}
+
+		log.Infof("User %s created by TrustUsername", username)
+	}
+
+	// ok, user is checked, get all fields now
+	return user.FindByUsername(username)
+}
+
+func (user *User) setEmailAndFullnameFromTrustedUsername() {
+	conf := viper.GetString("trusted_usernames_emails_fullnames")
+	if len(conf) < 2 {
+		user.setEmailFromDefaultDomain()
+		user.Fullname = user.Username
+		return
+	}
+
+	tuples := strings.Split(conf, ",")
+
+	for _, tuple := range tuples {
+		t := strings.Split(tuple, ":")
+		if len(t) != 3 {
+			log.Errorf("Misconfiguration of trusted_usernames_emails tuple:%s", tuple)
+			continue
+		}
+		usernameTuple := t[0]
+		emailTuple := t[1]
+		fullnameTuple := t[2]
+		if usernameTuple == user.Username && emailTuple != "" && fullnameTuple != "" {
+			user.Email = emailTuple
+			user.Fullname = strings.Replace(fullnameTuple, "_", " ", -1)
+			return
+		}
+	}
+	// default behaviour
+	user.setEmailFromDefaultDomain()
+	user.Fullname = user.Username
+}
+
+func (user *User) setEmailFromDefaultDomain() {
+	user.Email = user.Username + "@" + viper.GetString("default_domain")
 }
 
 // FindByUsernameAndPassword search username, use user's salt to generates tokenVerify
@@ -512,6 +579,63 @@ func (user *User) RemoveFavoriteTopic(topic string) error {
 	return nil
 }
 
+func (user *User) containsOffNotificationsTopic(topic string) bool {
+	_, err := user.getOffNotificationsTopic(topic)
+	if err == nil {
+		return true
+	}
+	return false
+}
+
+func (user *User) getOffNotificationsTopic(topic string) (string, error) {
+	for _, cur := range user.OffNotificationsTopics {
+		if cur == topic {
+			return cur, nil
+		}
+	}
+	l := ""
+	return l, fmt.Errorf("topic %s not found in off notifications topics of user", topic)
+}
+
+// EnableNotificationsTopic remove topic from user list offNotificationsTopics
+func (user *User) EnableNotificationsTopic(topic string) error {
+
+	topicName, err := CheckAndFixNameTopic(topic)
+	if err != nil {
+		return err
+	}
+
+	t, err := user.getOffNotificationsTopic(topicName)
+	if err != nil {
+		return fmt.Errorf("Enable notifications on topic %s is not possible, notifications are already enabled", topicName)
+	}
+
+	err = Store().clUsers.Update(
+		bson.M{"_id": user.ID},
+		bson.M{"$pull": bson.M{"offNotificationsTopics": t}})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// DisableNotificationsTopic add topic to user list offNotificationsTopics
+func (user *User) DisableNotificationsTopic(topic string) error {
+	if user.containsOffNotificationsTopic(topic) {
+		return fmt.Errorf("DisableNotificationsTopic not possible, notifications are already off on topic %s", topic)
+	}
+
+	err := Store().clUsers.Update(
+		bson.M{"_id": user.ID},
+		bson.M{"$push": bson.M{"offNotificationsTopics": topic}})
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
 func (user *User) getFavoriteTag(tag string) (string, error) {
 	for _, cur := range user.FavoritesTags {
 		if cur == tag {
@@ -673,6 +797,10 @@ func (user *User) Archive(userAdmin string) error {
 
 // Rename changes username of one user
 func (user *User) Rename(newUsername string) error {
+	if IsUsernameExists(newUsername) {
+		return fmt.Errorf("Username %s already exists", newUsername)
+	}
+
 	err := Store().clUsers.Update(
 		bson.M{"_id": user.ID},
 		bson.M{"$set": bson.M{"username": newUsername}})
@@ -689,7 +817,98 @@ func (user *User) Rename(newUsername string) error {
 	return nil
 }
 
+// Update changes fullname and email of user
+func (user *User) Update(newFullname, newEmail string) error {
+
+	if user.Email != newEmail && IsEmailExists(newEmail) {
+		return fmt.Errorf("Email %s already exists", newEmail)
+	}
+
+	if user.Fullname != newFullname && IsFullnameExists(newFullname) {
+		return fmt.Errorf("Fullname %s already exists", newFullname)
+	}
+
+	err := Store().clUsers.Update(
+		bson.M{"_id": user.ID},
+		bson.M{"$set": bson.M{"fullname": newFullname, "email": newEmail}})
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // CountUsers returns the total number of users in db
 func CountUsers() (int, error) {
 	return Store().clUsers.Count()
+}
+
+func (user *User) createTopics() error {
+	err := user.CreatePrivateTopic("")
+	if err != nil {
+		return err
+	}
+	err = user.CreatePrivateTopic("Bookmarks")
+	if err != nil {
+		return err
+	}
+	err = user.CreatePrivateTopic("Tasks")
+	if err != nil {
+		return err
+	}
+	err = user.CreatePrivateTopic("Notifications")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// CreatePrivateTopic creates a Private Topic. Name of topic will be :
+// /Private/username and if subTopic != "", it will be :
+// /Private/username/subTopic
+// CanUpdateMsg, CanDeleteMsg set to true
+func (user *User) CreatePrivateTopic(subTopic string) error {
+	topic := "/Private/" + user.Username
+	description := "Private Topic"
+
+	if subTopic != "" {
+		topic = fmt.Sprintf("%s/%s", topic, subTopic)
+		description = fmt.Sprintf("%s - %s of %s", description, subTopic, user.Username)
+	} else {
+		description = fmt.Sprintf("%s - %s", description, user.Username)
+	}
+	t := &Topic{
+		Topic:        topic,
+		Description:  description,
+		CanUpdateMsg: true,
+		CanDeleteMsg: true,
+	}
+	e := t.Insert(user)
+	if e != nil {
+		log.Errorf("Error while creating Private topic %s: %s", topic, e.Error())
+	}
+	return e
+}
+
+// AddDefaultGroup add default group to user
+func (user *User) AddDefaultGroup() error {
+	groupname := viper.GetString("default_group")
+
+	// no default group
+	if groupname == "" {
+		return nil
+	}
+
+	group := Group{}
+	errfinding := group.FindByName(groupname)
+	if errfinding != nil {
+		e := fmt.Errorf("Error while fetching default group : %s", errfinding.Error())
+		return e
+	}
+	err := group.AddUser("Tat", user.Username)
+	if err != nil {
+		e := fmt.Errorf("Error while adding user to default group : %s", err.Error())
+		return e
+	}
+	return nil
 }
