@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/google/go-github/github"
 	"github.com/inconshreveable/go-update"
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -12,13 +13,6 @@ import (
 
 // used by CI to inject architecture (linux-amd64, etc...) at build time
 var architecture string
-
-// used by CI to inject url for downloading with tatcli update.
-// value of urlUpdate injected at build time
-// full URL update is constructed with architecture var :
-// urlUpdate + "tatcli-" + architecture, tatcli is the binary
-var urlUpdateRelease string
-var urlUpdateSnapshot string
 
 func init() {
 	if urlUpdateSnapshot != "" {
@@ -33,12 +27,39 @@ var Cmd = &cobra.Command{
 	Long:    `tatcli update`,
 	Aliases: []string{"up"},
 	Run: func(cmd *cobra.Command, args []string) {
-		doUpdate(urlUpdateRelease, architecture)
+		doUpdate("", architecture)
 	},
 }
 
+func getURLArtifactFromGithub(architecture string) string {
+	client := github.NewClient(nil)
+	release, resp, err := client.Repositories.GetLatestRelease("ovh", "tatcli")
+	if err != nil {
+		fmt.Printf("Repositories.GetLatestRelease returned error: %v\n%v", err, resp.Body)
+		os.Exit(1)
+	}
+
+	if len(release.Assets) > 0 {
+		for _, asset := range release.Assets {
+			if *asset.Name == "tatcli-"+architecture {
+				return *asset.BrowserDownloadURL
+			}
+		}
+	}
+
+	fmt.Println("Invalid Artifacts on latest release. Please try in few minutes.")
+	fmt.Println("If it's persit, please open an issue on https://github.com/ovh/tatcli/issues")
+	os.Exit(1)
+	return ""
+}
+
 func doUpdate(baseurl, architecture string) {
-	url := fmt.Sprintf("%s/tatcli-%s", baseurl, architecture)
+	if architecture == "" {
+		fmt.Println("You seem to have a custom build of tatcli")
+		fmt.Println("Please download latest release on https://github.com/ovh/tatcli/releases")
+		os.Exit(1)
+	}
+	url := getURLArtifactFromGithub(architecture)
 	if internal.Verbose {
 		fmt.Printf("Url to update tatcli: %s\n", url)
 	}
@@ -52,6 +73,8 @@ func doUpdate(baseurl, architecture string) {
 		fmt.Printf("Error http code: %d, url called: %s\n", resp.StatusCode, url)
 		os.Exit(1)
 	}
+
+	fmt.Printf("Getting latest release from : %s ...\n", url)
 	defer resp.Body.Close()
 	err = update.Apply(resp.Body, update.Options{})
 	if err != nil {
@@ -59,4 +82,5 @@ func doUpdate(baseurl, architecture string) {
 		fmt.Printf("Url: %s\n", url)
 		os.Exit(1)
 	}
+	fmt.Println("Updating done.")
 }
