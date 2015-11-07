@@ -9,7 +9,7 @@ import (
 )
 
 // VERSION of tatcli
-const VERSION = "0.50.0"
+const VERSION = "0.51.0"
 
 var versionNewLine bool
 
