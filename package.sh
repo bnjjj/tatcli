@@ -6,9 +6,9 @@ for GOOS in darwin linux ; do
           continue;
         fi;
         architecture="${GOOS}-${GOARCH}"
-        echo "Building ${architecture} ${path} update url : ${URL_UPDATE_RELEASE}"
+        echo "Building ${architecture} ${path}"
         export GOOS=$GOOS
         export GOARCH=$GOARCH
-        go build -ldflags "-X ${PROJECT_PATH}/${PROJECT_NAME}/update.architecture=${architecture} -X ${PROJECT_PATH}/${PROJECT_NAME}/update.urlUpdateRelease=${URL_UPDATE_RELEASE} -X ${PROJECT_PATH}/${PROJECT_NAME}/update.urlUpdateSnapshot=${URL_UPDATE_SNAPSHOT}" -o bin/tatcli-${architecture}
+        go build -ldflags "-X ${PROJECT_PATH}/${PROJECT_NAME}/update.architecture=${architecture} -X ${PROJECT_PATH}/${PROJECT_NAME}/update.urlUpdateSnapshot=${URL_UPDATE_SNAPSHOT}" -o bin/tatcli-${architecture}
     done
 done
