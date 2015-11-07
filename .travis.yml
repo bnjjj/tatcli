@@ -4,7 +4,6 @@ go:
 env:
   global:
   - GO15VENDOREXPERIMENT=1
-  - URL_UPDATE_RELEASE="https://github.com/ovh/tatcli/releases/download/$TRAVIS_TAG"
   - URL_UPDATE_SNAPSHOT=""
   - PROJECT_NAME="tatcli"
   - PROJECT_PATH="github.com/ovh"
