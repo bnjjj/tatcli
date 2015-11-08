@@ -24,7 +24,7 @@ func init() {
 	cmdTopicList.Flags().StringVarP(&criteriaDateMinCreation, "dateMinCreation", "", "", "Filter result on dateCreation, timestamp Unix format")
 	cmdTopicList.Flags().StringVarP(&criteriaDateMaxCreation, "dateMaxCreation", "", "", "Filter result on dateCreation, timestamp Unix Format")
 	cmdTopicList.Flags().StringVarP(&criteriaGetNbMsgUnread, "getNbMsgUnread", "", "", "If true, add new array to return, topicsMsgUnread with topic:nbUnreadMsgSinceLastPresenceOnTopic")
-	cmdTopicList.Flags().StringVarP(&criteriaGetForTatAdmin, "getForTatAdmin", "", "", "(AdminOnly) If true, and requester is a Tat Admin, returns all topics without checking user / group access (RO or RW on Topic)")
+	cmdTopicList.Flags().StringVarP(&criteriaGetForTatAdmin, "getForTatAdmin", "", "", "(AdminOnly) If true, and requester is a Tat Admin, returns all topics (except /Private/*) without checking user / group access (RO or RW on Topic)")
 }
 
 var cmdTopicList = &cobra.Command{

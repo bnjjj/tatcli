@@ -11,24 +11,26 @@ import (
 var (
 	dateCreation int
 
-	treeView                string
-	criteriaIDMessage       string
-	criteriaInReplyOfID     string
-	criteriaInReplyOfIDRoot string
-	criteriaAllIDMessage    string
-	criteriaText            string
-	criteriaTopic           string
-	criteriaLabel           string
-	criteriaNotLabel        string
-	criteriaAndLabel        string
-	criteriaTag             string
-	criteriaNotTag          string
-	criteriaAndTag          string
-	criteriaDateMinCreation string
-	criteriaDateMaxCreation string
-	criteriaDateMinUpdate   string
-	criteriaDateMaxUpdate   string
-	criteriaUsername        string
+	treeView                  string
+	criteriaIDMessage         string
+	criteriaInReplyOfID       string
+	criteriaInReplyOfIDRoot   string
+	criteriaAllIDMessage      string
+	criteriaText              string
+	criteriaTopic             string
+	criteriaLabel             string
+	criteriaNotLabel          string
+	criteriaAndLabel          string
+	criteriaTag               string
+	criteriaNotTag            string
+	criteriaAndTag            string
+	criteriaDateMinCreation   string
+	criteriaDateMaxCreation   string
+	criteriaDateMinUpdate     string
+	criteriaDateMaxUpdate     string
+	criteriaUsername          string
+	criteriaLimitMinNBReplies string
+	criteriaLimitMaxNBReplies string
 )
 
 func init() {
@@ -50,6 +52,8 @@ func init() {
 	cmdMessageList.Flags().StringVarP(&criteriaDateMinUpdate, "dateMinUpdate", "", "", "Search by dateMinUpdate (timestamp)")
 	cmdMessageList.Flags().StringVarP(&criteriaDateMaxUpdate, "dateMaxUpdate", "", "", "Search by dateMaxUpdate (timestamp)")
 	cmdMessageList.Flags().StringVarP(&criteriaUsername, "username", "", "", "Search by username : could be usernameA,usernameB")
+	cmdMessageList.Flags().StringVarP(&criteriaLimitMinNBReplies, "limitMinNBReplies", "", "", "In fulltree or onetree mode, filter root messages with more or equals minNbReplies")
+	cmdMessageList.Flags().StringVarP(&criteriaLimitMaxNBReplies, "limitMaxNBReplies", "", "", "In fulltree or onetree mode, filter root messages with min or equals maxNbReplies")
 }
 
 var cmdMessageList = &cobra.Command{
@@ -121,6 +125,12 @@ func messagesList(topic string, skip, limit string) {
 	}
 	if criteriaUsername != "" {
 		c = c + "&username=" + criteriaUsername
+	}
+	if criteriaLimitMinNBReplies != "" {
+		c = c + "&limitMinNBReplies=" + criteriaLimitMinNBReplies
+	}
+	if criteriaLimitMaxNBReplies != "" {
+		c = c + "&limitMaxNBReplies=" + criteriaLimitMaxNBReplies
 	}
 	fmt.Print(internal.GetWantReturn(fmt.Sprintf("/messages%s?skip=%s&limit=%s%s", topic, skip, limit, c)))
 }
