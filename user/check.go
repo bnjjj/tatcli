@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/ovh/tatcli/internal"
@@ -29,7 +30,7 @@ tatcli check username true true
 			}
 			checkUserAction(args[0], fixPrivateTopics, fixDefaultGroup)
 		} else {
-			fmt.Println("Invalid argument: tatcli user check --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli user check --help\n")
 		}
 	},
 }

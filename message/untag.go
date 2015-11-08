@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -14,7 +15,7 @@ var cmdMessageUntag = &cobra.Command{
 			tag := args[1]
 			messageAction("untag", "/", args[0], tag, "")
 		} else {
-			fmt.Println("Invalid argument to untag a message: tatcli message untag --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to untag a message: tatcli message untag --help\n")
 		}
 	},
 }

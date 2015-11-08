@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -17,7 +18,7 @@ var cmdMessageTask = &cobra.Command{
 			idMessage := strings.Join(args[1:len(args)], " ")
 			messageAction("task", args[0], idMessage, "", "")
 		} else {
-			fmt.Println("Invalid argument to task a message: tatcli message task --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to task a message: tatcli message task --help\n")
 		}
 	},
 }

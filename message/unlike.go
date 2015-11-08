@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +14,7 @@ var cmdMessageUnlike = &cobra.Command{
 		if len(args) == 1 {
 			messageAction("unlike", "/", args[0], "", "")
 		} else {
-			fmt.Println("Invalid argument to unlike a message: tatcli message unlike --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to unlike a message: tatcli message unlike --help\n")
 		}
 	},
 }

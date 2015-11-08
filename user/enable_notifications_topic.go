@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +14,7 @@ var cmdUserEnableNotificationsTopic = &cobra.Command{
 		if len(args) == 1 {
 			userPOST("/me/enable/notifications/topics" + args[0])
 		} else {
-			fmt.Println("Invalid argument: tatcli user enableNotificationsTopic --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli user enableNotificationsTopic --help\n")
 		}
 	},
 }

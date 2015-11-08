@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +14,7 @@ var cmdUserAddContact = &cobra.Command{
 		if len(args) == 1 {
 			userPOST("/me/contacts/" + args[0])
 		} else {
-			fmt.Println("Invalid argument to add contact: tatcli user addContact --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to add contact: tatcli user addContact --help\n")
 		}
 	},
 }

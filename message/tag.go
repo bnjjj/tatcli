@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -19,7 +20,7 @@ var cmdMessageTag = &cobra.Command{
 			tag := args[1]
 			messageAction("tag", "/", args[0], tag, "")
 		} else {
-			fmt.Println("Invalid argument to add a tag: tatcli message tag --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to add a tag: tatcli message tag --help\n")
 		}
 	},
 }

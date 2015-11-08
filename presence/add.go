@@ -3,6 +3,7 @@ package presence
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ovh/tatcli/internal"
@@ -17,7 +18,7 @@ var cmdPresenceAdd = &cobra.Command{
 			status := strings.Join(args[1:len(args)], " ")
 			presenceCreate(args[0], status)
 		} else {
-			fmt.Println("Invalid argument: tatcli presence add --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli presence add --help\n")
 		}
 	},
 }

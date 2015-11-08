@@ -2,6 +2,7 @@ package topic
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +18,7 @@ var cmdTopicDeleteRwGroup = &cobra.Command{
 		if len(args) >= 2 {
 			topicDeleteRwGroups(args[0], args[1:len(args)])
 		} else {
-			fmt.Println("Invalid argument: tatcli topic deleteRwGroup --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli topic deleteRwGroup --help\n")
 		}
 	},
 }

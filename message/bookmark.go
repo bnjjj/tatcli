@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -16,7 +17,7 @@ var cmdMessageBookmark = &cobra.Command{
 			idMessage := strings.Join(args[1:len(args)], " ")
 			messageAction("bookmark", topic, idMessage, "", "")
 		} else {
-			fmt.Println("Invalid argument to bookmark message: tatcli message bookmark --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to bookmark message: tatcli message bookmark --help\n")
 		}
 	},
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -16,7 +17,7 @@ var cmdUserConvertToSystem = &cobra.Command{
 		if len(args) == 2 {
 			convertUserAction(args[0], args[1])
 		} else {
-			fmt.Println("Invalid argument : tatcli user convert --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument : tatcli user convert --help\n")
 		}
 	},
 }

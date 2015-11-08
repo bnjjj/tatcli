@@ -67,7 +67,7 @@ func socketInteractive() {
 			line = analyzeLine(c, line)
 			if line != "" {
 				if err = c.WriteMessage(1, []byte(line)); err != nil {
-					fmt.Println(err.Error())
+					fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 				}
 			}
 		}
@@ -129,7 +129,7 @@ func getWSJSONTopic(action, args string) models.WSJSON {
 func getStrWSJSONTopic(w models.WSJSON) []byte {
 	jsonStr, err := json.Marshal(w)
 	if err != nil {
-		fmt.Printf("Error while converting to json: %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Error while converting to json: %s\n", err.Error())
 	}
 	return jsonStr
 }
@@ -176,6 +176,6 @@ func wsActionUnsubscribeUsers(c *websocket.Conn) {
 
 func wsWrite(c *websocket.Conn, line []byte) {
 	if err := c.WriteMessage(1, line); err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 	}
 }

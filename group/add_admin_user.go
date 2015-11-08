@@ -3,6 +3,7 @@ package group
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var cmdGroupAddAdminUser = &cobra.Command{
 		if len(args) >= 2 {
 			groupAddAdminUsers(args[0], args[1:len(args)])
 		} else {
-			fmt.Println("Invalid argument: tatcli group addAdminUser --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli group addAdminUser --help\n")
 		}
 	},
 }

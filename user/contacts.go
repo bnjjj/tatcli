@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/ovh/tatcli/internal"
@@ -19,7 +20,7 @@ var cmdUserContacts = &cobra.Command{
 				return
 			}
 		}
-		fmt.Println("Invalid argument: tatcli user contacts --help")
+		fmt.Fprintf(os.Stderr, "Invalid argument: tatcli user contacts --help\n")
 	},
 }
 

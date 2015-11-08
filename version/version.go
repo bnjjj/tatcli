@@ -2,6 +2,7 @@ package version
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -28,7 +29,7 @@ var Cmd = &cobra.Command{
 			fmt.Printf("Version tatcli : %s\n", VERSION)
 			internal.ReadConfig()
 			if viper.GetString("url") == "" {
-				fmt.Printf("Version Engine : No Engine Configured. See tatcli config --help\n")
+				fmt.Fprintf(os.Stderr, "Version Engine : No Engine Configured. See tatcli config --help\n")
 			} else {
 				fmt.Printf("Version Engine on %s : %s\n", viper.GetString("url"), internal.GetWantReturn("/version"))
 			}

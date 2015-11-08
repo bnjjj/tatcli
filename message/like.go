@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +14,7 @@ var cmdMessageLike = &cobra.Command{
 		if len(args) == 1 {
 			messageAction("like", "/", args[0], "", "")
 		} else {
-			fmt.Println("Invalid argument to like a message: tatcli message like --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to like a message: tatcli message like --help\n")
 		}
 	},
 }

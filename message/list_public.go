@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -16,7 +17,7 @@ var cmdMessageListPublic = &cobra.Command{
 			skip, limit := internal.GetSkipLimit(args)
 			messagesList(args[0], skip, limit)
 		} else {
-			fmt.Println("Invalid argument to list message: See tatcli msg list --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to list message: See tatcli msg list --help\n")
 		}
 	},
 }

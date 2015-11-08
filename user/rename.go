@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var cmdUserRename = &cobra.Command{
 		if len(args) == 2 {
 			renameUserAction(args[0], args[1])
 		} else {
-			fmt.Println("Invalid argument: tatcli user rename --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli user rename --help\n")
 		}
 	},
 }

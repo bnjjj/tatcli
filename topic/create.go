@@ -3,6 +3,7 @@ package topic
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ovh/tatcli/internal"
@@ -17,7 +18,7 @@ var cmdTopicCreate = &cobra.Command{
 			description := strings.Join(args[1:len(args)], " ")
 			topicCreate(args[0], description)
 		} else {
-			fmt.Println("Invalid argument: tatcli topic create --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli topic create --help\n")
 		}
 	},
 }

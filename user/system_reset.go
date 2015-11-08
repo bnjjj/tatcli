@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -16,7 +17,7 @@ var cmdUserResetSystem = &cobra.Command{
 		if len(args) == 1 {
 			resetSystemUserAction(args[0])
 		} else {
-			fmt.Println("Invalid argument: tatcli user resetSystemUser --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli user resetSystemUser --help\n")
 		}
 	},
 }

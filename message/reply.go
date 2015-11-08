@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -21,7 +22,7 @@ var cmdMessageReply = &cobra.Command{
 			message := strings.Join(args[2:len(args)], " ")
 			messageAction("reply", topic, inReplyOfID, message, "")
 		} else {
-			fmt.Println("Invalid argument to reply to a message: tatcli message reply --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to reply to a message: tatcli message reply --help\n")
 		}
 	},
 }

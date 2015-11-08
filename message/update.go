@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -21,7 +22,7 @@ var cmdMessageUpdate = &cobra.Command{
 			message := strings.Join(args[2:len(args)], " ")
 			messageAction("update", topic, messageID, message, "")
 		} else {
-			fmt.Println("Invalid argument to update a message: tatcli message update --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to update a message: tatcli message update --help\n")
 			cmd.Help()
 		}
 	},

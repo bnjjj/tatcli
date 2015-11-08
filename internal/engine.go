@@ -94,7 +94,7 @@ func ReqWant(method string, wantCode int, path string, jsonStr []byte) string {
 	ReadConfig()
 
 	if viper.GetString("url") == "" {
-		fmt.Println("Invalid Configuration : invalid URL. See tatcli config --help")
+		fmt.Fprintf(os.Stderr, "Invalid Configuration : invalid URL. See tatcli config --help\n")
 		os.Exit(1)
 	}
 

@@ -20,7 +20,7 @@ var cmdTopicParameter = &cobra.Command{
 	Aliases: []string{"param"},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) != 8 {
-			fmt.Println("Invalid parameter to tatcli topic param. See tatcli topic param --help")
+			fmt.Fprintf(os.Stderr, "Invalid parameter to tatcli topic param. See tatcli topic param --help\n")
 			cmd.Help()
 			os.Exit(1)
 		}

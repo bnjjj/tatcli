@@ -2,6 +2,7 @@ package socket
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -20,7 +21,7 @@ var cmdSocketMessages = &cobra.Command{
 	Aliases: []string{"m", "msg", "message"},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			fmt.Println("Invalid args. See tatcli socket messages --help")
+			fmt.Fprintf(os.Stderr, "Invalid args. See tatcli socket messages --help\n")
 		} else {
 			socketMessages(strings.Join(args, " "))
 		}

@@ -2,6 +2,7 @@ package topic
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -14,7 +15,7 @@ var cmdTopicDelete = &cobra.Command{
 		if len(args) == 1 {
 			topicDelete(args[0])
 		} else {
-			fmt.Println("Invalid argument: tatcli topic delete --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli topic delete --help\n")
 		}
 	},
 }

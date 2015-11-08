@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var cmdUserReset = &cobra.Command{
 		if len(args) == 2 {
 			userReset(args[0], args[1])
 		} else {
-			fmt.Println("Invalid argument to reset password: tatcli user reset --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to reset password: tatcli user reset --help\n")
 		}
 	},
 }

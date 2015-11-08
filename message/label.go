@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -26,7 +27,7 @@ var cmdMessageLabel = &cobra.Command{
 			}
 			messageAction("label", "/", args[0], text, color)
 		} else {
-			fmt.Println("Invalid argument to add a label: tatcli message label --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to add a label: tatcli message label --help\n")
 		}
 	},
 }

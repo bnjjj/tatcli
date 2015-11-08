@@ -3,6 +3,7 @@ package message
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ovh/tatcli/internal"
@@ -26,7 +27,7 @@ var cmdMessageAdd = &cobra.Command{
 			message := strings.Join(args[1:len(args)], " ")
 			messageCreate(topic, message)
 		} else {
-			fmt.Println("Invalid argument to add a message: tatcli msg add --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to add a message: tatcli msg add --help\n")
 		}
 	},
 }

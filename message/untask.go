@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var cmdMessageUntask = &cobra.Command{
 			idMessage := strings.Join(args[1:len(args)], " ")
 			messageAction("untask", args[0], idMessage, "", "")
 		} else {
-			fmt.Println("Invalid argument to untask a message: tatcli message untask --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to untask a message: tatcli message untask --help\n")
 		}
 	},
 }

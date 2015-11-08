@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -14,7 +15,7 @@ var cmdMessageDelete = &cobra.Command{
 		if len(args) == 1 {
 			messageAction("remove", "", args[0], "", "")
 		} else {
-			fmt.Println("Invalid argument to delete message: tatcli message delete --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to delete message: tatcli message delete --help\n")
 		}
 	},
 }

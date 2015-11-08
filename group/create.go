@@ -3,6 +3,7 @@ package group
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ovh/tatcli/internal"
@@ -17,7 +18,7 @@ var cmdGroupCreate = &cobra.Command{
 			description := strings.Join(args[1:len(args)], " ")
 			groupCreate(args[0], description)
 		} else {
-			fmt.Println("Invalid argument: tatcli group create --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli group create --help\n")
 		}
 	},
 }

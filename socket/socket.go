@@ -37,14 +37,14 @@ func wsActionConnect(c *websocket.Conn) {
 	w.Password = viper.GetString("password")
 	jsonStr, err := json.Marshal(w)
 	if err != nil {
-		fmt.Printf("Error while converting to json (connect): %s", err.Error())
+		fmt.Fprintf(os.Stderr, "Error while converting to json (connect): %s\n", err.Error())
 	}
 	wsWrite(c, jsonStr)
 }
 func newClient() *websocket.Conn {
 	internal.ReadConfig()
 	if viper.GetString("url") == "" {
-		fmt.Println("Invalid Configuration: invalid URL. See tatcli config --help")
+		fmt.Fprintf(os.Stderr, "Invalid Configuration: invalid URL. See tatcli config --help\n")
 		os.Exit(1)
 	}
 

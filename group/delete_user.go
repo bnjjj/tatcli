@@ -2,6 +2,7 @@ package group
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +14,7 @@ var cmdGroupDeleteUser = &cobra.Command{
 		if len(args) >= 2 {
 			groupDeleteUsers(args[0], args[1:len(args)])
 		} else {
-			fmt.Println("Invalid argument: tatcli group deleteUser --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli group deleteUser --help\n")
 		}
 	},
 }

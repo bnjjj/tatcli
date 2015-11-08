@@ -2,6 +2,7 @@ package user
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -13,7 +14,7 @@ var cmdUserAddFavoriteTag = &cobra.Command{
 		if len(args) == 1 {
 			userPOST("/me/tags/" + args[0])
 		} else {
-			fmt.Println("Invalid argument: tatcli user addFavoriteTag --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli user addFavoriteTag --help\n")
 		}
 	},
 }

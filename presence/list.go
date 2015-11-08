@@ -2,6 +2,7 @@ package presence
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var cmdPresenceList = &cobra.Command{
 			skip, limit := internal.GetSkipLimit(args)
 			presencesList(args[0], skip, limit)
 		} else {
-			fmt.Println("Invalid argument: tatcli presence list --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli presence list --help\n")
 		}
 	},
 }

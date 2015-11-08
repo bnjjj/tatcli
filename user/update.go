@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ovh/tatcli/internal"
@@ -19,7 +20,7 @@ var cmdUserUpdate = &cobra.Command{
 			fullname := strings.Join(args[2:len(args)], " ")
 			updateUserAction(username, email, fullname)
 		} else {
-			fmt.Println("Invalid argument: tatcli user update --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli user update --help\n")
 		}
 	},
 }

@@ -2,6 +2,7 @@ package message
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var cmdMessageUnlabel = &cobra.Command{
 			label := strings.Join(args[1:len(args)], " ")
 			messageAction("unlabel", "/", args[0], label, "")
 		} else {
-			fmt.Println("Invalid argument to unlabel a message: tatcli message unlabel --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to unlabel a message: tatcli message unlabel --help\n")
 		}
 	},
 }

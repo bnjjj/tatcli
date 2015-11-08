@@ -24,7 +24,7 @@ var cmdUserVerify = &cobra.Command{
 		if len(args) == 2 {
 			userVerify(args[0], args[1])
 		} else {
-			fmt.Println("Invalid argument to verify account: tatcli user verify --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument to verify account: tatcli user verify --help\n")
 		}
 	},
 }

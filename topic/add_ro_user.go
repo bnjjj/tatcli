@@ -2,6 +2,7 @@ package topic
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +18,7 @@ var cmdTopicAddRoUser = &cobra.Command{
 		if len(args) >= 2 {
 			topicAddRoUsers(args[0], args[1:len(args)])
 		} else {
-			fmt.Println("Invalid argument: tatcli topic addRoUser --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli topic addRoUser --help\n")
 		}
 	},
 }

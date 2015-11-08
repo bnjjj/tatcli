@@ -3,6 +3,7 @@ package topic
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ovh/tatcli/internal"
@@ -20,7 +21,7 @@ var cmdTopicAddParameter = &cobra.Command{
 		if len(args) >= 2 {
 			topicAddParameter(args[0], args[1:len(args)])
 		} else {
-			fmt.Println("Invalid argument: tatcli topic addParameter --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli topic addParameter --help\n")
 		}
 	},
 }

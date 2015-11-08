@@ -3,6 +3,7 @@ package user
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/ovh/tatcli/internal"
 	"github.com/spf13/cobra"
@@ -15,7 +16,7 @@ var cmdUserSetAdmin = &cobra.Command{
 		if len(args) == 1 {
 			setAdminUserAction(args[0])
 		} else {
-			fmt.Println("Invalid argument: tatcli user setAdmin --help")
+			fmt.Fprintf(os.Stderr, "Invalid argument: tatcli user setAdmin --help\n")
 		}
 	},
 }
