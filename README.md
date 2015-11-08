@@ -232,7 +232,7 @@ Aliases:
 
 
 Available Commands:
-  list             List all topics: tatcli topic list [<skip>] [<limit>] [<true>] if true, return unread cound msg
+  list             List all topics: tatcli topic list [<skip>] [<limit>], tatcli topic list -h for see all criterias
   create           Create a new topic: tatcli create <topic> <description of topic>
   delete           Delete a new topic: tatcli delete <topic>
   addRoUser        Add Read Only Users to a topic: tatcli topic addRoUser [--recursive] <topic> <username1> [username2]...
