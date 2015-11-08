@@ -160,8 +160,8 @@ Flags:
       --inReplyOfID="": Search by IDMessage InReply
       --inReplyOfIDRoot="": Search by IDMessage IdRoot
       --label="": Search by label: could be labelA,labelB
-      --limitMaxNBReplies="": In fulltree or onetree mode, filter root messages with min or equals maxNbReplies
-      --limitMinNBReplies="": In fulltree or onetree mode, filter root messages with more or equals minNbReplies
+      --limitMaxNbReplies="": In onetree mode, filter root messages with min or equals maxNbReplies
+      --limitMinNbReplies="": In onetree mode, filter root messages with more or equals minNbReplies
       --notLabel="": Search by label (exclude): could be labelA,labelB
       --notTag="": Search by tag (exclude) : could be tagA,tagB
       --tag="": Search by tag : could be tagA,tagB
