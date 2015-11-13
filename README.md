@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ovh/tatcli.svg?branch=master)](https://travis-ci.org/ovh/tatcli)
+
 # Description
 Tat Command Line Interface.
 
