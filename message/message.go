@@ -52,8 +52,8 @@ func messageAction(action, topic, idReference, message, option string) {
 		action == "task" || action == "untask" ||
 		action == "tag" || action == "untag" ||
 		action == "update" {
-		internal.PutWant("/message"+topic, jsonStr)
+		internal.PutWant("/message/"+topic, jsonStr)
 	} else {
-		fmt.Print(internal.PostWant(fmt.Sprintf("/message%s", topic), jsonStr))
+		fmt.Print(internal.PostWant(fmt.Sprintf("/message/%s", topic), jsonStr))
 	}
 }

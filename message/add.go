@@ -46,5 +46,5 @@ func messageCreate(topic, message string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Print(internal.PostWant("/message"+topic, jsonStr))
+	fmt.Print(internal.PostWant("/message/"+topic, jsonStr))
 }

@@ -132,5 +132,5 @@ func messagesList(topic string, skip, limit string) {
 	if criteriaLimitMaxNbReplies != "" {
 		c = c + "&limitMaxNbReplies=" + criteriaLimitMaxNbReplies
 	}
-	fmt.Print(internal.GetWantReturn(fmt.Sprintf("/messages%s?skip=%s&limit=%s%s", topic, skip, limit, c)))
+	fmt.Print(internal.GetWantReturn(fmt.Sprintf("/messages/%s?skip=%s&limit=%s%s", topic, skip, limit, c)))
 }
